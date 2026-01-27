@@ -272,7 +272,7 @@ def test_list_testcases(sim_env, tb_path):
 
     tc_list = list_testcases(hr.runner)
 
-    assert tc_list.strip() == "TC:1 - tb_passing.test", "checking list testcases"
+    assert tc_list.strip() == "TC:1 - test_lib:tb_passing.test", "checking list testcases"
 
 
 def test_wildcard_asterix_testcases(sim_env, tb_path):

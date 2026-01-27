@@ -322,7 +322,8 @@ class VHDLTest(HdlRegressionTest):
         return gc_str
 
     def get_testcase_name(self) -> str:
-        testcase_name = self.get_name()
+        testcase_name = self.get_library().get_name() + ":"
+        testcase_name += self.get_name()
         testcase_name += "." + self.get_arch().get_name()
 
         if self.get_tc() is not None:

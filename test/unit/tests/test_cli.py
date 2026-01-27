@@ -143,8 +143,8 @@ def test_list_testcase(tmp_path, tb_path, sim_env, sim_name):
     assert result.stderr == ""
 
     out = result.stdout
-    assert "TC:1 - my_tb_arch.arch_1" in out, "check: testcase 1 listed"
-    assert "TC:2 - my_tb_arch.arch_2" in out, "check: testcase 2 listed"
+    assert "TC:1 - test_lib_1:my_tb_arch.arch_1" in out, "check: testcase 1 listed"
+    assert "TC:2 - test_lib_2:my_tb_arch.arch_2" in out, "check: testcase 2 listed"
     assert result.returncode == 1, "check: return code is 1 for no tests run"
 
 
@@ -168,8 +168,8 @@ def test_select_sim(tmp_path, tb_path, sim_env, sim_name):
 
     else:
         assert err == ""
-        assert "my_tb_arch.arch_1" in out
-        assert "my_tb_arch.arch_2" in out
+        assert "test_lib_1.my_tb_arch.arch_1" in out
+        assert "test_lib_2.my_tb_arch.arch_2" in out
         assert result.returncode == 0, "check: return code is 0 for success"
 
 

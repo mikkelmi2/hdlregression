@@ -682,13 +682,14 @@ class ArchitectureParser(BaseParser):
     def _configuration_instantiation(self, code):
         # Configuration instantiations
         re_configuration = re.compile(r'''
-            \b\w+                          # label
+            \b\w+                           # label
             \s*:\s*configuration
-            \s+(?P<name>[a-zA-Z_0-9\.]+)  # configuration name (with optional lib.)
+            \s+(?P<name>[a-zA-Z_0-9\.]+)    # configuration name (with optional lib.)
             (?:\s+generic\s+map\s*\(.*?\))? # optional generic map
             (?:\s+port\s+map\s*\(.*?\))?    # optional port map
-            \s*;                           # semicolon
+            \s*;                            # semicolon
         ''', flags=self._ALL_FLAGS | re.DOTALL | re.VERBOSE)
+
         for match in re.finditer(re_configuration, code):
             conf_name = match.group('name')
 

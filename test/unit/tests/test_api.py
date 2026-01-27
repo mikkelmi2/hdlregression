@@ -278,6 +278,25 @@ def test_add_file_with_new_settings(sim_env, tb_path):
         assert file_obj.get_code_coverage() is True, "check code coverage setting"
 
 
+def test_add_file_wildcard(sim_env, tb_path):
+    clear_output()
+    hr = HDLRegression(simulator=sim_env["simulator"])
+
+    filename = get_file_path(tb_path + "/tb_passing.*")
+    hr.add_files(filename = filename, library_name = "test_lib")
+
+    filename = get_file_path(tb_path + "/*/tb_3_testcases.vhd")
+    hr.add_files(filename = filename, library_name = "test_lib")
+
+    hr.set_result_check_string("passing testcase")
+    
+    hr.start()
+    (pass_test, fail_test, not_run_test) = hr.get_results()
+
+    assert len(pass_test) == 4, "check get_results() pass_test"
+    assert len(fail_test) == 0, "check get_results() fail_test"
+    assert len(not_run_test) == 0, "check get_results() not_run_test"
+
 def test_add_library_dependency(sim_env, tb_path):
     clear_output()
     hr = HDLRegression(simulator=sim_env["simulator"])

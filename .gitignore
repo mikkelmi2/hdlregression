@@ -26,6 +26,7 @@ doc/src/_build/doctrees
 doc/src/_build/latex/
 .css
 .js
+doc/.venv/
 
 
 # unit testing
