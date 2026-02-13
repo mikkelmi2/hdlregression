@@ -267,8 +267,22 @@ class VHDLFile(HDLFile):
         # return True to caller - caller does not care if file is parsed.
         if self.parse_file is True:
             file_content_list = self._get_file_content_as_list()
-            # Extract relevant content from source file
+
+            # Try cache first
+            cache = self.project.get_parse_cache() if self.project else None
+            if cache:
+                cached = cache.get_cached(self.filename_with_path, file_content_list)
+                if cached:
+                    self.scanner.import_state(cached)
+                    return True
+
+            # Parse normally
             self.scanner.scan(file_content_list)
+
+            # Store in cache
+            if cache:
+                cache.store(self.filename_with_path, file_content_list,
+                            self.scanner.export_state())
         return True
 
     def _get_com_options(self, simulator) -> str:
@@ -423,8 +437,22 @@ class VerilogFile(HDLFile):
         # Check if file should be parsed
         if self.parse_file is True:
             file_content_list = self._get_file_content_as_list()
-            # Extract relevant content from source file
+
+            # Try cache first
+            cache = self.project.get_parse_cache() if self.project else None
+            if cache:
+                cached = cache.get_cached(self.filename_with_path, file_content_list)
+                if cached:
+                    self.scanner.import_state(cached)
+                    return True
+
+            # Parse normally
             self.scanner.scan(file_content_list)
+
+            # Store in cache
+            if cache:
+                cache.store(self.filename_with_path, file_content_list,
+                            self.scanner.export_state())
         return True
 
     def _get_com_options(self, simulator) -> str:

@@ -98,6 +98,49 @@ class HDLScanner:
     def get_assertion_count(self) -> int:
         return self.assertion_count
 
+    def export_state(self) -> dict:
+        """
+        Export scanner state as serializable dict (no object references).
+        This allows caching parse results without pickling complex objects.
+        """
+        modules_data = []
+        for module in self.container.get():
+            module_data = {
+                'name': module.get_name(),
+                'type': module.get_type(),
+                'is_tb': module.get_is_tb(),
+                'int_dep_list': module.get_int_dep().copy(),
+                'ext_dep_list': module.get_ext_dep().copy(),
+                'filename': module.get_filename(),
+            }
+            # Add type-specific data
+            if module.get_is_architecture():
+                module_data['arch_of'] = module.get_arch_of()
+                module_data['testcase_list'] = module.get_testcase().copy()
+            elif module.get_is_entity():
+                module_data['generic_list'] = module.get_generic().copy()
+                module_data['arch_list'] = module.get_architecture().copy()
+            elif module.get_is_verilog_module():
+                module_data['parameter_list'] = module.get_parameter().copy()
+                module_data['testcase_list'] = module.get_testcase().copy()
+            modules_data.append(module_data)
+
+        return {
+            'modules': modules_data,
+            'library_list': self.library_list.copy(),
+            'int_use_list': self.int_use_list.copy(),
+            'testcase_list': self.testcase_list.copy(),
+            'assertion_list': self.assertion_list.copy(),
+            'assertion_count': self.assertion_count,
+        }
+
+    def import_state(self, data: dict):
+        """
+        Restore scanner state from cached dict.
+        Implemented in VHDLScanner/VerilogScanner to create correct module types.
+        """
+        pass
+
     @abstractmethod
     def _clean_code(self, file_content_list) -> list:
         pass

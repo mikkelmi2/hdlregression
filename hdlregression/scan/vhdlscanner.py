@@ -116,6 +116,52 @@ class VHDLScanner(HDLScanner):
         self.add_module_to_container(module)
         return module
 
+    def import_state(self, data: dict):
+        """
+        Restore scanner state from cached dict.
+        Creates appropriate module types based on cached data.
+        """
+        # Restore scanner-level data
+        self.library_list = data.get('library_list', []).copy()
+        self.int_use_list = data.get('int_use_list', []).copy()
+        self.testcase_list = data.get('testcase_list', []).copy()
+        self.assertion_list = data.get('assertion_list', {}).copy()
+        self.assertion_count = data.get('assertion_count', 0)
+
+        # Restore modules
+        for mod_data in data.get('modules', []):
+            mod_type = mod_data['type']
+            name = mod_data['name']
+
+            if mod_type == 'entity':
+                module = self.get_entity_module(name)
+                for generic in mod_data.get('generic_list', []):
+                    module.add_generic(generic)
+                for arch in mod_data.get('arch_list', []):
+                    module.add_architecture(arch)
+            elif mod_type == 'architecture':
+                arch_of = mod_data.get('arch_of', '')
+                module = self.get_architecture_module(name, arch_of)
+                for tc in mod_data.get('testcase_list', []):
+                    module.add_testcase(tc)
+            elif mod_type == 'package':
+                module = self.get_package_module(name)
+            elif mod_type == 'package_body':
+                module = self.get_package_body_module(name)
+            elif mod_type == 'context':
+                module = self.get_context_module(name)
+            elif mod_type == 'configuration':
+                module = self.get_configuration_module(name)
+            else:
+                continue
+
+            # Set common properties
+            if mod_data.get('is_tb', False):
+                module.set_is_tb()
+            module.add_int_dep(mod_data.get('int_dep_list', []))
+            module.add_ext_dep(mod_data.get('ext_dep_list', []))
+            module.set_complete()
+
     def tokenize(self, file_content_list):
         '''
         Scan code for dependencies and modules.

@@ -44,14 +44,23 @@ class ContainerIndexTypeError(HDLContainerError):
 
 class Container:
     def __init__(self, name=None):
-        self.storage = []
+        self.storage = []  # Keep for ordered iteration
+        self._by_name = {}  # Add for O(1) lookup
         self.name = name.lower() if name else "no_name"
 
     def add(self, element) -> bool:
-        if element not in self.storage:
-            self.storage.append(element)
-            return True
-        else:
+        try:
+            key = element.get_name().lower()
+            if key not in self._by_name:
+                self._by_name[key] = element
+                self.storage.append(element)
+                return True
+            return False
+        except AttributeError:
+            # Element doesn't have get_name() - fall back to list-only storage
+            if element not in self.storage:
+                self.storage.append(element)
+                return True
             return False
 
     def add_element_from_list(self, element_list):
@@ -70,23 +79,18 @@ class Container:
     def get(self, name=None) -> list:
         if not name:
             return self.storage
-        else:
-            for element in self.storage:
-                try:
-                    if element.get_name().lower() == name.lower():
-                        return element
-                except:
-                    raise ContainerNameError(name)
-        return Container()
+        return self._by_name.get(name.lower(), Container())
 
     def remove(self, element_name) -> None:
         if isinstance(element_name, str):
-            temp_list = [element for element in self.storage
-                         if element.get_name().lower() != element_name.lower()]
+            key = element_name.lower()
         else:
-            temp_list = [element for element in self.storage
-                         if element.get_name().lower() != element_name.get_name().lower()]
-        self.storage = temp_list
+            key = element_name.get_name().lower()
+
+        if key in self._by_name:
+            self._by_name.pop(key)
+            self.storage = [e for e in self.storage
+                            if e.get_name().lower() != key]
 
     def num_elements(self) -> int:
         return len(self.storage)
@@ -99,12 +103,10 @@ class Container:
 
     def empty_list(self) -> int:
         self.storage = []
+        self._by_name = {}
 
     def exists(self, name) -> bool:
-        for element in self.storage:
-            if element.get_name().lower() == name.lower():
-                return True
-        return False
+        return name.lower() in self._by_name
 
     def update(self, item) -> bool:
         for element in self.storage:

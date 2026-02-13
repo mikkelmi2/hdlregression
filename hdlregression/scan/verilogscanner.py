@@ -44,6 +44,39 @@ class VerilogScanner(HDLScanner):
         self.add_module_to_container(module)
         return module
 
+    def import_state(self, data: dict):
+        """
+        Restore scanner state from cached dict.
+        Creates appropriate module types based on cached data.
+        """
+        # Restore scanner-level data
+        self.library_list = data.get('library_list', []).copy()
+        self.int_use_list = data.get('int_use_list', []).copy()
+        self.testcase_list = data.get('testcase_list', []).copy()
+        self.assertion_list = data.get('assertion_list', {}).copy()
+        self.assertion_count = data.get('assertion_count', 0)
+
+        # Restore modules
+        for mod_data in data.get('modules', []):
+            mod_type = mod_data['type']
+            name = mod_data['name']
+
+            if mod_type == 'verilog_module':
+                module = self.get_verilog_module(name)
+                for param in mod_data.get('parameter_list', []):
+                    module.add_parameter(param)
+                for tc in mod_data.get('testcase_list', []):
+                    module.add_testcase(tc)
+            else:
+                continue
+
+            # Set common properties
+            if mod_data.get('is_tb', False):
+                module.set_is_tb()
+            module.add_int_dep(mod_data.get('int_dep_list', []))
+            module.add_ext_dep(mod_data.get('ext_dep_list', []))
+            module.set_complete()
+
     def tokenize(self, file_content_list):
         """
         Scan code for dependencies and modules.

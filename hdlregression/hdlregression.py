@@ -43,6 +43,7 @@ from .run.vivado_runner import VivadoRunner
 from .construct.hdllibrary import HDLLibrary, PrecompiledLibrary
 from .configurator import SettingsConfigurator
 from .run.hdltests import TestStatus
+from .scan.parse_cache import ParseCache
 import copy
 import sys
 import os
@@ -104,6 +105,7 @@ class HDLRegression:
         self.hdlcodecoverage = self._initialize_hdl_code_coverage()
 
         self.cached_simulator_settings = None
+        self._parse_cache = None
 
         self._initialize_signal_handler()
         if output_path is None:
@@ -912,6 +914,16 @@ class HDLRegression:
     def _initialize_hdl_code_coverage(self):
         return HdlCodeCoverage(project=self)
 
+    def get_parse_cache(self):
+        """
+        Get the parse cache instance, creating it if necessary.
+        Cache is stored in the project output directory.
+        """
+        if self._parse_cache is None:
+            cache_path = os.path.join(self.settings.get_output_path(), 'parse_cache.dat')
+            self._parse_cache = ParseCache(cache_path)
+        return self._parse_cache
+
     def _initialize_signal_handler(self):
         signal(SIGINT, exit_handler)
 
@@ -1257,6 +1269,10 @@ class HDLRegression:
         :param reset: Enables resetting of all HDLRegressionSettings obj settings.
         :type reset: bool
         """
+
+        # Save parse cache
+        if self._parse_cache:
+            self._parse_cache.save()
 
         # Helper method
         def _dump(container, filename, output_path):
